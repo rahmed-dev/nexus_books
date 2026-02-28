@@ -64,6 +64,11 @@ app_license = "mit"
 # 	"Role": "home_page"
 # }
 
+# SPA route rules — serve nexus.html for all /nexus/* deep links
+website_route_rules = [
+	{"from_route": "/nexus/<path:app_path>", "to_route": "nexus"},
+]
+
 # Generators
 # ----------
 

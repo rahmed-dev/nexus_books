@@ -1,0 +1,14 @@
+@import 'frappe-ui/style.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mobile-first base: full-height app shell, no scroll bounce */
+html,
+body,
+#app {
+  height: 100%;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
