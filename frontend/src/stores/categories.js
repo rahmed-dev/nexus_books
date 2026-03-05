@@ -84,6 +84,7 @@ export const useCategoryStore = defineStore('categories', () => {
         category_type: categoryData.category_type,
         color: categoryData.color || null,
         icon: categoryData.icon || null,
+        gl_account: categoryData.gl_account || null,
       },
     })
     await loadCategories()
@@ -99,6 +100,7 @@ export const useCategoryStore = defineStore('categories', () => {
         category_type: categoryData.category_type,
         color: categoryData.color || null,
         icon: categoryData.icon || null,
+        gl_account: categoryData.gl_account || null,
       },
     })
     await loadCategories()

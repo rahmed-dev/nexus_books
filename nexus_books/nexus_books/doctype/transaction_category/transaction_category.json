@@ -12,11 +12,9 @@
   "category_type",
   "is_active",
   "section_break_acct",
-  "account",
   "item",
+  "gl_account",
   "default_tax_template",
-  "column_break_rich",
-  "receiving_account",
   "section_break_ui",
   "color",
   "icon"
@@ -62,19 +60,20 @@
    "label": "Accounting"
   },
   {
-   "fieldname": "account",
-   "fieldtype": "Link",
-   "in_list_view": 1,
-   "label": "Payment Account",
-   "mandatory_depends_on": "eval:doc.category_type != \"Transfer\"",
-   "options": "Account"
-  },
-  {
-   "description": "Non-stock item to use for invoices (leave blank to use generic item)",
+   "description": "Non-stock item to use for Sales / Purchase Invoices. When set, the item's default income/expense account is used automatically.",
    "fieldname": "item",
    "fieldtype": "Link",
    "label": "Item",
    "options": "Item"
+  },
+  {
+   "description": "GL account for Journal Entry posting. Required when no item is set and for Transfer categories.",
+   "fieldname": "gl_account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "GL Account",
+   "options": "Account",
+   "link_filters": "[[\"Account\", \"is_group\", \"=\", 0]]"
   },
   {
    "fieldname": "default_tax_template",
@@ -98,22 +97,12 @@
    "fieldtype": "Data",
    "label": "Icon",
    "length": 50
-  },
-  {
-   "fieldname": "column_break_rich",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "receiving_account",
-   "fieldtype": "Link",
-   "label": "Receiving Account",
-   "options": "Account"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-03-01 02:41:53.955784",
+ "modified": "2026-03-05 21:30:19.897561",
  "modified_by": "Administrator",
  "module": "Nexus Books",
  "name": "Transaction Category",

@@ -1,0 +1,50 @@
+[
+  {
+    "doctype": "Custom Field",
+    "name": "Journal Entry-nexus_books_ref",
+    "dt": "Journal Entry",
+    "fieldname": "nexus_books_ref",
+    "fieldtype": "Data",
+    "label": "Nexus Books Ref",
+    "read_only": 1,
+    "insert_after": "user_remark",
+    "in_list_view": 0,
+    "in_standard_filter": 0
+  },
+  {
+    "doctype": "Custom Field",
+    "name": "Payment Entry-nexus_books_ref",
+    "dt": "Payment Entry",
+    "fieldname": "nexus_books_ref",
+    "fieldtype": "Data",
+    "label": "Nexus Books Ref",
+    "read_only": 1,
+    "insert_after": "remarks",
+    "in_list_view": 0,
+    "in_standard_filter": 0
+  },
+  {
+    "doctype": "Custom Field",
+    "name": "Sales Invoice-nexus_books_ref",
+    "dt": "Sales Invoice",
+    "fieldname": "nexus_books_ref",
+    "fieldtype": "Data",
+    "label": "Nexus Books Ref",
+    "read_only": 1,
+    "insert_after": "remarks",
+    "in_list_view": 0,
+    "in_standard_filter": 0
+  },
+  {
+    "doctype": "Custom Field",
+    "name": "Purchase Invoice-nexus_books_ref",
+    "dt": "Purchase Invoice",
+    "fieldname": "nexus_books_ref",
+    "fieldtype": "Data",
+    "label": "Nexus Books Ref",
+    "read_only": 1,
+    "insert_after": "remarks",
+    "in_list_view": 0,
+    "in_standard_filter": 0
+  }
+]

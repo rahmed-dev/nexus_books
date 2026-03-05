@@ -40,6 +40,17 @@ export const useTransactionStore = defineStore('transactions', () => {
     return fetchTransactionsByStatus(db, 'pending')
   }
 
+  async function getUnsyncedTransactions() {
+    const db = await openNexusDB()
+    const [pendingTransactions, failedTransactions] = await Promise.all([
+      fetchTransactionsByStatus(db, 'pending'),
+      fetchTransactionsByStatus(db, 'failed'),
+    ])
+    return [...pendingTransactions, ...failedTransactions].sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at),
+    )
+  }
+
   async function markTransactionSyncing(transactionId) {
     const db = await openNexusDB()
     await patchTransactionInDB(db, transactionId, { sync_status: 'syncing' })
@@ -64,6 +75,21 @@ export const useTransactionStore = defineStore('transactions', () => {
       sync_error: errorMessage,
       retry_count: currentRetryCount + 1,
     })
+  }
+
+  async function deleteIdbTransaction(transactionId) {
+    const db = await openNexusDB()
+    await removeTransactionFromDB(db, transactionId)
+    await loadRecentTransactions()
+  }
+
+  async function updateIdbTransaction(transactionId, updatedData) {
+    const db = await openNexusDB()
+    await patchTransactionInDB(db, transactionId, {
+      ...updatedData,
+      sync_status: 'pending', // re-queue for sync after edit
+    })
+    await loadRecentTransactions()
   }
 
   async function cacheParties(partyList) {
@@ -159,6 +185,15 @@ export const useTransactionStore = defineStore('transactions', () => {
     })
   }
 
+  function removeTransactionFromDB(db, transactionId) {
+    return new Promise((resolve, reject) => {
+      const idbTx = db.transaction(['transactions'], 'readwrite')
+      const request = idbTx.objectStore('transactions').delete(transactionId)
+      request.onsuccess = () => resolve()
+      request.onerror = () => reject(request.error)
+    })
+  }
+
   function refreshPendingCount(db) {
     return new Promise((resolve, reject) => {
       const idbTx = db.transaction(['transactions'], 'readonly')
@@ -178,7 +213,10 @@ export const useTransactionStore = defineStore('transactions', () => {
     hasPendingTransactions,
     loadRecentTransactions,
     addTransaction,
+    deleteIdbTransaction,
+    updateIdbTransaction,
     getPendingTransactions,
+    getUnsyncedTransactions,
     markTransactionSyncing,
     markTransactionSynced,
     markTransactionFailed,

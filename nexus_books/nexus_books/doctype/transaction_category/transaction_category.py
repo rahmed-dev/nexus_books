@@ -9,46 +9,40 @@ from frappe.model.document import Document
 class TransactionCategory(Document):
 	def validate(self):
 		"""Validate Transaction Category before save."""
-		self.validate_account_type()
+		self.validate_gl_account_type()
 		self.validate_item()
 		self.set_defaults()
 
-	def validate_account_type(self):
-		"""Validate that account type matches category type."""
-		if not self.account:
+	def validate_gl_account_type(self):
+		"""Validate that gl_account type is appropriate for the category type.
+
+		Transfer categories do not use gl_account (they use Nexus Account GL links).
+		"""
+		if not self.gl_account or self.category_type == "Transfer":
 			return
 
-		account_doc = frappe.get_cached_doc("Account", self.account)
+		account_doc = frappe.get_cached_doc("Account", self.gl_account)
 		account_type = account_doc.account_type
 
-		if self.category_type == "Income":
-			if account_type not in ["Income Account", "Income"]:
-				frappe.throw(
-					_("Income category must be linked to an Income Account. Selected account is {0}").format(account_type)
-				)
+		if self.category_type == "Income" and account_type not in ["Income Account", "Income"]:
+			frappe.throw(
+				_("Income category GL Account must be an Income account. Selected: {0}").format(account_type)
+			)
 
-		elif self.category_type == "Expense":
-			if account_type not in ["Expense Account", "Expenses"]:
-				frappe.throw(
-					_("Expense category must be linked to an Expense Account. Selected account is {0}").format(account_type)
-				)
-
-		elif self.category_type == "Transfer":
-			if account_type not in ["Bank", "Cash"]:
-				frappe.throw(
-					_("Transfer category must be linked to a Bank or Cash Account. Selected account is {0}").format(account_type)
-				)
+		if self.category_type == "Expense" and account_type not in ["Expense Account", "Expenses"]:
+			frappe.throw(
+				_("Expense category GL Account must be an Expense account. Selected: {0}").format(account_type)
+			)
 
 	def validate_item(self):
-		"""Validate that item is a non-stock item if provided."""
+		"""Validate that the linked item is a non-stock service item."""
 		if not self.item:
 			return
 
 		item_doc = frappe.get_cached_doc("Item", self.item)
-
 		if item_doc.is_stock_item:
 			frappe.throw(
-				_("Item {0} must be a non-stock item. Please select or create a Service item.").format(self.item)
+				_("Item {0} must be a non-stock Service item.").format(self.item)
 			)
 
 	def set_defaults(self):

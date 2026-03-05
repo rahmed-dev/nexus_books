@@ -6,23 +6,28 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "transaction_type",
+  "category",
   "date",
   "naming_series",
   "column_break_main",
-  "category",
+  "transaction_type",
   "amount",
+  "tax_amount",
   "section_break_party",
-  "column_break_pymt",
-  "payment_account",
-  "supplier",
-  "column_break_mnnu",
-  "receiving_account",
+  "nexus_account",
   "customer",
+  "column_break_transfer",
+  "to_nexus_account",
+  "supplier",
   "section_break_details",
   "description",
   "column_break_tags",
   "receipt_image",
+  "section_break_gl",
+  "gl_status",
+  "gl_error",
+  "erpnext_origin",
+  "reference_name",
   "section_break_reference",
   "document_name_column",
   "amended_from",
@@ -31,14 +36,13 @@
  ],
  "fields": [
   {
-   "fieldname": "transaction_type",
-   "fieldtype": "Select",
+   "fieldname": "category",
+   "fieldtype": "Link",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Type",
-   "options": "\nIncome\nExpense\nTransfer",
-   "read_only": 1,
-   "reqd": 1
+   "label": "Category",
+   "mandatory_depends_on": "eval:doc.transaction_type != 'Transfer'",
+   "options": "Transaction Category"
   },
   {
    "default": "Now",
@@ -60,12 +64,14 @@
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "category",
-   "fieldtype": "Link",
+   "fetch_from": "category.category_type",
+   "fetch_if_empty": 1,
+   "fieldname": "transaction_type",
+   "fieldtype": "Select",
    "in_list_view": 1,
    "in_standard_filter": 1,
-   "label": "Category",
-   "options": "Transaction Category",
+   "label": "Type",
+   "options": "\nIncome\nExpense\nTransfer",
    "reqd": 1
   },
   {
@@ -76,29 +82,46 @@
    "reqd": 1
   },
   {
+   "fieldname": "tax_amount",
+   "fieldtype": "Currency",
+   "label": "Tax Amount"
+  },
+  {
    "fieldname": "section_break_party",
    "fieldtype": "Section Break",
-   "label": "Party & Payment"
+   "label": "Accounts & Party"
   },
   {
-   "fieldname": "column_break_pymt",
+   "fieldname": "nexus_account",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "From Account",
+   "options": "Nexus Account",
+   "reqd": 1
+  },
+  {
+   "fieldname": "customer",
+   "fieldtype": "Link",
+   "label": "Customer",
+   "options": "Customer"
+  },
+  {
+   "fieldname": "column_break_transfer",
    "fieldtype": "Column Break"
   },
   {
-   "fieldname": "payment_account",
+   "depends_on": "eval:doc.transaction_type == 'Transfer'",
+   "fieldname": "to_nexus_account",
    "fieldtype": "Link",
-   "label": "Payment Account",
-   "options": "Account"
+   "label": "To Account",
+   "mandatory_depends_on": "eval:doc.transaction_type == 'Transfer'",
+   "options": "Nexus Account"
   },
   {
-   "fieldname": "column_break_mnnu",
-   "fieldtype": "Column Break"
-  },
-  {
-   "fieldname": "receiving_account",
+   "fieldname": "supplier",
    "fieldtype": "Link",
-   "label": "Receiving Account",
-   "options": "Account"
+   "label": "Supplier",
+   "options": "Supplier"
   },
   {
    "collapsible": 1,
@@ -122,7 +145,44 @@
   },
   {
    "collapsible": 1,
-   "collapsible_depends_on": "reference_doctype",
+   "fieldname": "section_break_gl",
+   "fieldtype": "Section Break",
+   "label": "GL Posting"
+  },
+  {
+   "default": "pending",
+   "fieldname": "gl_status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "GL Status",
+   "options": "pending\nposted\nfailed\nskipped\nerpnext_origin",
+   "read_only": 1
+  },
+  {
+   "fieldname": "gl_error",
+   "fieldtype": "Small Text",
+   "label": "GL Error",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "erpnext_origin",
+   "fieldtype": "Check",
+   "label": "From ERPNext",
+   "read_only": 1,
+   "description": "Transaction was imported from ERPNext — will not be synced back"
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Data",
+   "label": "ERPNext Reference",
+   "read_only": 1,
+   "description": "Voucher number of the source ERPNext document (for duplicate guard)"
+  },
+  {
+   "collapsible": 1,
+   "collapsible_depends_on": "reference_document",
    "fieldname": "section_break_reference",
    "fieldtype": "Section Break",
    "label": "Created Document"
@@ -143,20 +203,6 @@
    "search_index": 1
   },
   {
-   "fieldname": "customer",
-   "fieldtype": "Link",
-   "label": "Customer",
-   "options": "Customer",
-   "read_only": 1
-  },
-  {
-   "fieldname": "supplier",
-   "fieldtype": "Link",
-   "label": "Supplier",
-   "options": "Supplier",
-   "read_only": 1
-  },
-  {
    "fieldname": "reference_document",
    "fieldtype": "Link",
    "label": "Reference Document",
@@ -173,7 +219,7 @@
  "index_web_pages_for_search": 1,
  "is_submittable": 1,
  "links": [],
- "modified": "2026-03-01 02:10:09.988056",
+ "modified": "2026-03-06 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Nexus Books",
  "name": "Financial Transaction",

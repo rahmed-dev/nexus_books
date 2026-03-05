@@ -1,29 +1,22 @@
 <template>
   <div class="flex flex-col pb-24">
 
-    <!-- Header -->
-    <div class="px-4 py-4">
-      <h1 class="text-lg font-semibold text-ink-gray-9">Categories</h1>
-    </div>
+    <PageHeader title="Categories" back-to="/settings" />
 
     <!-- FAB: add category -->
     <FAB label="Add category" @click="openCreateForm" />
 
     <!-- Filter chips -->
     <div class="flex gap-2 overflow-x-auto px-4 pb-3 scrollbar-hide">
-      <button
+      <FilterChip
         v-for="filter in filterOptions"
         :key="filter.value"
-        type="button"
-        class="shrink-0 rounded-full px-4 py-1.5 text-xs font-medium transition-colors"
-        :class="activeFilter === filter.value
-          ? 'bg-ink-gray-9 text-surface-white'
-          : 'bg-surface-gray-2 text-ink-gray-6'"
+        :active="activeFilter === filter.value"
         @click="activeFilter = filter.value"
       >
         {{ filter.label }}
         <span class="ml-1 opacity-70">{{ filterCount(filter.value) }}</span>
-      </button>
+      </FilterChip>
     </div>
 
     <!-- Loading -->
@@ -32,10 +25,11 @@
     </div>
 
     <!-- Empty state -->
-    <div v-else-if="!filteredCategories.length" class="py-16 text-center">
-      <p class="text-sm font-medium text-ink-gray-7">No {{ activeFilter === 'All' ? '' : activeFilter.toLowerCase() + ' ' }}categories yet</p>
-      <p class="mt-1 text-xs text-ink-gray-5">Tap + New to add one</p>
-    </div>
+    <EmptyState
+      v-else-if="!filteredCategories.length"
+      :title="`No ${activeFilter === 'All' ? '' : activeFilter.toLowerCase() + ' '}categories yet`"
+      subtitle="Tap + New to add one"
+    />
 
     <!-- Category rows -->
     <div v-else>
@@ -47,17 +41,7 @@
         @click="openEditForm(category)"
       >
         <!-- Icon -->
-        <div
-          class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
-          :style="{ backgroundColor: category.color ? category.color + '22' : '#f3f4f6' }"
-        >
-          <span
-            v-if="category.icon"
-            class="h-5 w-5 text-ink-gray-8 [&>svg]:h-full [&>svg]:w-full"
-            v-html="getIconSvg(category.icon)"
-          />
-          <span v-else class="text-base">📁</span>
-        </div>
+        <CategoryAvatar :icon="category.icon" :color="category.color" />
 
         <!-- Name + type badge (shown only in All view) -->
         <div class="flex-1 min-w-0">
@@ -98,7 +82,10 @@ import { ref, computed, onMounted } from 'vue'
 import { useCategoryStore } from '@/stores/categories'
 import CategoryForm from '@/components/CategoryForm.vue'
 import FAB from '@/components/FAB.vue'
-import { getIconSvg } from '@/utils/icons'
+import PageHeader from '@/components/PageHeader.vue'
+import FilterChip from '@/components/FilterChip.vue'
+import CategoryAvatar from '@/components/CategoryAvatar.vue'
+import EmptyState from '@/components/EmptyState.vue'
 
 const categoryStore = useCategoryStore()
 

@@ -1,0 +1,2 @@
+import{o as t,c as a,a as l,i as s,t as n,d as r,I as i}from"./index-92f28db9.js";const c={class:"mb-1.5 block text-xs font-medium text-ink-gray-6"},d={key:0,class:"font-normal text-ink-gray-4"},u={__name:"FormField",props:{label:{type:String,required:!0},optional:{type:Boolean,default:!1}},setup(e){return(o,m)=>(t(),a("div",null,[l("label",c,[s(n(e.label)+" ",1),e.optional?(t(),a("span",d,"(optional)")):r("",!0)]),i(o.$slots,"default")]))}};export{u as _};
+//# sourceMappingURL=FormField-e0e44dfd.js.map

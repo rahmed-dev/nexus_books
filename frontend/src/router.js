@@ -11,9 +11,29 @@ const routes = [
     component: () => import('@/views/Dashboard.vue'),
   },
   {
+    path: '/transactions',
+    name: 'Transactions',
+    component: () => import('@/views/TransactionList.vue'),
+  },
+  {
+    path: '/settings',
+    name: 'Settings',
+    component: () => import('@/views/SettingsPage.vue'),
+  },
+  {
     path: '/categories',
     name: 'Categories',
     component: () => import('@/views/CategoryList.vue'),
+  },
+  {
+    path: '/accounts',
+    name: 'Accounts',
+    component: () => import('@/views/AccountList.vue'),
+  },
+  {
+    path: '/settings/dashboard',
+    name: 'DashboardConfig',
+    component: () => import('@/views/DashboardConfig.vue'),
   },
   {
     path: '/:invalidPath(.*)*',

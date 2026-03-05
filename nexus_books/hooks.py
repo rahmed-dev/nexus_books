@@ -64,6 +64,16 @@ app_license = "mit"
 # 	"Role": "home_page"
 # }
 
+# Fixtures — Custom Fields on standard ERPNext DocTypes
+fixtures = [
+    {"dt": "Custom Field", "filters": [["name", "in", [
+        "Journal Entry-nexus_books_ref",
+        "Payment Entry-nexus_books_ref",
+        "Sales Invoice-nexus_books_ref",
+        "Purchase Invoice-nexus_books_ref",
+    ]]]},
+]
+
 # SPA route rules — serve nexus.html for all /nexus/* deep links
 website_route_rules = [
 	{"from_route": "/nexus/<path:app_path>", "to_route": "nexus"},
@@ -153,23 +163,11 @@ website_route_rules = [
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"nexus_books.tasks.all"
-# 	],
-# 	"daily": [
-# 		"nexus_books.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"nexus_books.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"nexus_books.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"nexus_books.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+	"hourly": [
+		"nexus_books.nexus_books.gl_scheduler.post_pending_gl_entries"
+	],
+}
 
 # Testing
 # -------

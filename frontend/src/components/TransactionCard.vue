@@ -1,38 +1,29 @@
 <template>
-  <div class="flex items-center gap-3 px-4 py-3 active:bg-surface-gray-1">
-    <!-- Category color dot + type icon -->
-    <div
-      class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
-      :style="{ backgroundColor: categoryBackground }"
-    >
-      <!-- Income: arrow up -->
-      <svg
-        v-if="transaction.transaction_type === 'Income'"
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-5 w-5 text-green-700"
-        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"
-      >
-        <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
-      </svg>
-      <!-- Expense: arrow down -->
-      <svg
-        v-else-if="transaction.transaction_type === 'Expense'"
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-5 w-5 text-red-700"
-        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"
-      >
-        <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
-      </svg>
-      <!-- Transfer: swap -->
-      <svg
-        v-else
-        xmlns="http://www.w3.org/2000/svg"
-        class="h-5 w-5 text-blue-700"
-        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"
-      >
-        <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+  <div class="relative overflow-hidden">
+    <!-- Delete hint background (revealed on swipe left) -->
+    <div class="absolute inset-y-0 right-0 flex w-20 items-center justify-center bg-red-500">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
       </svg>
     </div>
+
+    <!-- Swipeable card row -->
+    <div
+      class="relative flex items-center gap-3 bg-surface-white px-4 py-3 active:bg-surface-gray-1"
+      :style="{
+        transform: `translateX(${swipeOffsetPx}px)`,
+        transition: isSwipeInProgress ? 'none' : 'transform 0.2s ease',
+      }"
+      @click="onTap"
+      @touchstart.passive="onTouchStart"
+      @touchmove.passive="onTouchMove"
+      @touchend.passive="onTouchEnd"
+    >
+    <!-- Category avatar -->
+    <CategoryAvatar
+      :icon="resolvedCategory?.icon"
+      :color="resolvedCategory?.category_color ?? resolvedCategory?.color"
+    />
 
     <!-- Category + description -->
     <div class="min-w-0 flex-1">
@@ -52,26 +43,20 @@
 
     <!-- Amount + sync badge -->
     <div class="flex shrink-0 flex-col items-end gap-1">
-      <span
-        class="text-sm font-semibold"
-        :class="amountColorClass"
-      >
+      <span class="text-sm font-semibold" :class="amountColorClass">
         {{ amountPrefix }}{{ formattedAmount }}
       </span>
-      <span
-        v-if="syncBadgeLabel"
-        class="rounded-full px-1.5 py-0.5 text-xs font-medium"
-        :class="syncBadgeClass"
-      >
-        {{ syncBadgeLabel }}
-      </span>
+      <SyncBadge :status="transaction.sync_status" />
     </div>
-  </div>
+    </div> <!-- end swipeable row -->
+  </div> <!-- end swipe container -->
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useCategoryStore } from '@/stores/categories'
+import CategoryAvatar from '@/components/CategoryAvatar.vue'
+import SyncBadge from '@/components/SyncBadge.vue'
 
 const props = defineProps({
   transaction: {
@@ -80,15 +65,64 @@ const props = defineProps({
   },
 })
 
+const emit = defineEmits(['edit', 'delete-request'])
+
+// --- Swipe-to-delete ---
+
+const SWIPE_TRIGGER_THRESHOLD_PX = 72
+const HORIZONTAL_DOMINANCE_RATIO = 1.5
+
+const swipeOffsetPx = ref(0)
+const isSwipeInProgress = ref(false)
+let touchStartX = 0
+let touchStartY = 0
+
+function onTouchStart(event) {
+  touchStartX = event.touches[0].clientX
+  touchStartY = event.touches[0].clientY
+  isSwipeInProgress.value = true
+}
+
+function onTouchMove(event) {
+  const deltaX = event.touches[0].clientX - touchStartX
+  const deltaY = event.touches[0].clientY - touchStartY
+
+  // Only handle left-swipe that is more horizontal than vertical (not a scroll)
+  if (deltaX >= 0) return
+  if (Math.abs(deltaY) * HORIZONTAL_DOMINANCE_RATIO > Math.abs(deltaX)) return
+
+  swipeOffsetPx.value = Math.max(deltaX, -120)
+}
+
+function onTouchEnd() {
+  isSwipeInProgress.value = false
+  if (swipeOffsetPx.value < -SWIPE_TRIGGER_THRESHOLD_PX) {
+    emit('delete-request', props.transaction)
+  }
+  swipeOffsetPx.value = 0
+}
+
+function onTap() {
+  if (Math.abs(swipeOffsetPx.value) > 5) return // mid-swipe snap-back — ignore tap
+  emit('edit', props.transaction)
+}
+
 const categoryStore = useCategoryStore()
 
 // --- Category display ---
 
 const resolvedCategory = computed(() => {
-  // Frappe transactions already have category_name + category_color
-  if (props.transaction.category_name) return props.transaction
+  // Synced Frappe transactions have category_name + category_icon (not icon)
+  // Normalize to always expose `icon` so CategoryAvatar receives the correct prop.
+  if (props.transaction.category_name) {
+    return {
+      category_name: props.transaction.category_name,
+      icon: props.transaction.category_icon,
+      color: props.transaction.category_color,
+    }
+  }
 
-  // IDB transactions have category_id — look up from store
+  // IDB transactions have category_id — look up from store (store has icon + color)
   if (props.transaction.category_id) {
     return categoryStore.categories.find((c) => c.name === props.transaction.category_id)
   }
@@ -98,19 +132,6 @@ const resolvedCategory = computed(() => {
 const displayCategoryName = computed(
   () => resolvedCategory.value?.category_name ?? props.transaction.category ?? 'Uncategorised',
 )
-
-const categoryBackground = computed(() => {
-  const color = resolvedCategory.value?.category_color ?? resolvedCategory.value?.color
-  if (!color) {
-    return props.transaction.transaction_type === 'Income'
-      ? '#dcfce7'
-      : props.transaction.transaction_type === 'Expense'
-        ? '#fee2e2'
-        : '#dbeafe'
-  }
-  // Apply 20% opacity to the category hex color for a soft background
-  return color + '33'
-})
 
 // --- Amount display ---
 
@@ -137,19 +158,4 @@ const formattedDate = computed(() => {
   return new Date(raw).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 })
 
-// --- Sync badge (IDB transactions only) ---
-
-const SYNC_BADGE_CONFIG = {
-  pending: { label: 'Pending', classes: 'bg-yellow-100 text-yellow-800' },
-  syncing: { label: 'Syncing…', classes: 'bg-blue-100 text-blue-800' },
-  failed: { label: 'Failed', classes: 'bg-red-100 text-red-800' },
-  synced: null, // no badge needed once synced
-}
-
-const syncBadgeConfig = computed(
-  () => SYNC_BADGE_CONFIG[props.transaction.sync_status] ?? null,
-)
-
-const syncBadgeLabel = computed(() => syncBadgeConfig.value?.label ?? null)
-const syncBadgeClass = computed(() => syncBadgeConfig.value?.classes ?? '')
 </script>

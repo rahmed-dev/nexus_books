@@ -5,7 +5,7 @@
  */
 
 const DB_NAME = 'nexus_books_db'
-const DB_VERSION = 2
+const DB_VERSION = 3
 
 let dbConnectionPromise = null
 
@@ -56,6 +56,16 @@ export function openNexusDB() {
 
         if (!db.objectStoreNames.contains('app_settings')) {
           db.createObjectStore('app_settings', { keyPath: 'key' })
+        }
+
+        // v3: offline caches for items and nexus accounts
+        if (previousVersion < 3) {
+          if (!db.objectStoreNames.contains('cached_items')) {
+            db.createObjectStore('cached_items', { keyPath: 'name' })
+          }
+          if (!db.objectStoreNames.contains('cached_nexus_accounts')) {
+            db.createObjectStore('cached_nexus_accounts', { keyPath: 'name' })
+          }
         }
       }
     })

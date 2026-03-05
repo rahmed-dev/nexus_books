@@ -6,14 +6,14 @@
   -->
   <button
     type="button"
-    class="fixed right-4 flex h-14 w-14 items-center justify-center rounded-full bg-ink-gray-9 shadow-lg active:scale-95"
+    class="fixed right-4 flex h-14 w-14 items-center justify-center rounded-full bg-black shadow-lg active:scale-95"
     :style="{ bottom: 'calc(56px + env(safe-area-inset-bottom) + 1rem)' }"
     :aria-label="label"
     @click="emit('click')"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      class="h-6 w-6 text-surface-white"
+      class="h-6 w-6 text-white"
       fill="none"
       viewBox="0 0 24 24"
       stroke="currentColor"
